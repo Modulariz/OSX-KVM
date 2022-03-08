@@ -18,10 +18,10 @@ MY_OPTIONS="+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check"
 # This script works for Big Sur, Catalina, Mojave, and High Sierra. Tested with
 # macOS 10.15.6, macOS 10.14.6, and macOS 10.13.6.
 
-ALLOCATED_RAM="3072" # MiB
+ALLOCATED_RAM="12288" # MiB
 CPU_SOCKETS="1"
-CPU_CORES="2"
-CPU_THREADS="4"
+CPU_CORES="4"
+CPU_THREADS="10"
 
 REPO_PATH="."
 OVMF_DIR="."
@@ -40,8 +40,9 @@ args=(
   # -device usb-mouse,bus=ehci.0
   -device nec-usb-xhci,id=xhci
   -global nec-usb-xhci.msi=off
-  # -device usb-host,vendorid=0x8086,productid=0x0808  # 2 USD USB Sound Card
-  # -device usb-host,vendorid=0x1b3f,productid=0x2008  # Another 2 USD USB Sound Card
+  -device usb-host,vendorid=0x8086,productid=0x0808  # 2 USD USB Sound Card
+  -device usb-host,vendorid=0x1b3f,productid=0x2008  # Another 2 USD USB Sound Card
+  #-audiodev pa,id=snd0,server=localhost
   -device isa-applesmc,osk="ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc"
   -drive if=pflash,format=raw,readonly=on,file="$REPO_PATH/$OVMF_DIR/OVMF_CODE.fd"
   -drive if=pflash,format=raw,file="$REPO_PATH/$OVMF_DIR/OVMF_VARS-1024x768.fd"
@@ -55,9 +56,12 @@ args=(
   -drive id=MacHDD,if=none,file="$REPO_PATH/mac_hdd_ng.img",format=qcow2
   -device ide-hd,bus=sata.4,drive=MacHDD
   # -netdev tap,id=net0,ifname=tap0,script=no,downscript=no -device virtio-net-pci,netdev=net0,id=net0,mac=52:54:00:c9:18:27
-  -netdev user,id=net0 -device virtio-net-pci,netdev=net0,id=net0,mac=52:54:00:c9:18:27
+  # -netdev user,id=net0 -device virtio-net-pci,netdev=net0,id=net0,mac=52:54:00:c9:18:27
+  -netdev tap,id=net1,ifname=tap0,script=no,downscript=no -device e1000-82545em,netdev=net1,id=net1,mac=52:54:00:c9:18:27
   -monitor stdio
-  -device VGA,vgamem_mb=128
+  -device VGA,vgamem_mb=2048
+  -net user,smb=/home/modulariz/softfactory
+  -net nic,model=virtio
 )
 
 qemu-system-x86_64 "${args[@]}"
